@@ -23,6 +23,7 @@ airflow/*.db
 .env
 
 # Data files (raw data should not be in git)
+data/
 data/raw/*
 data/processed/*
 
