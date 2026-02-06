@@ -45,3 +45,6 @@ Dockerfile
 #Large files
 .csv
 .json
+
+#Python version
+.python-version
