@@ -2,6 +2,8 @@
 venv/
 env/
 ENV/
+pyenv/
+etlenv/
 
 # Python cache
 __pycache__/
@@ -34,3 +36,12 @@ Thumbs.db
 
 # Database credentials
 config.ini
+
+# Docker files
+.docker-compose.yml
+Dockerfile
+.dockerignore
+
+#Large files
+.csv
+.json
