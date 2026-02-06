@@ -1,0 +1,38 @@
+  services:
+    etl:
+      build: .
+      container_name: stock-etl
+      env_file:
+        - .env
+      volumes:
+        - .:/app
+      depends_on:
+        postgres:
+          condition: service_healthy
+      environment:  
+        DB_HOST: postgres
+      command: >
+        sh -c "python -m src.db.init.init_db &&
+            python main.py"
+      restart: on-failure
+
+    postgres:
+      image: postgres:15
+      container_name: stock_postgres
+      environment:  
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: ${SQL_PASSWORD}
+        POSTGRES_DB: stock_pipeline
+      ports:
+        - "5432:5432"
+      volumes:
+        - ./db/init:/docker-entrypoint-initdb.d
+        - pg-data:/var/lib/postgresql/data
+      healthcheck:
+        test: ['CMD-SHELL', 'pg_isready -U postgres']
+        interval: 5s
+        retries: 10
+
+      
+  volumes:
+    pg-data:
