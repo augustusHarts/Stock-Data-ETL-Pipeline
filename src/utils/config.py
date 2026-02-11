@@ -24,7 +24,7 @@ API_TIMEOUT = 10 # Seconds
 LOG_LEVEL = "INFO" # Logging level: (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
 # Pipeline Configuration
-STOCK_SYMBOLS = ['AAPL']
+STOCK_SYMBOLS = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA']
 
 # Yahoo API Parameters
 YAHOO_RANGE = '1Y'
@@ -37,12 +37,11 @@ ROLLING_WINDOWS = {
 }
 
 # Load environment variable
-load_dotenv()
+load_dotenv(BASE_DIR / '.env')
 db_user = os.getenv('POSTGRES_USER', 'postgres')
-db_pass = os.getenv('SQL_PASSWORD')
+db_pass = os.getenv('SQL_PASSWORD') or os.getenv('POSTGRES_PASSWORD')
 db_host = os.getenv('DB_HOST', 'postgres')
 db_name = os.getenv('POSTGRES_DB', 'stock_pipeline')
+db_port = os.getenv('DB_PORT', '5432')
 
-if not db_pass:
-    raise ValueError(f'Environment variable SQL_PASSWORD not found in .env file.')
-DATABASE_URL = f'postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:5432/{db_name}'
+DATABASE_URL = f'postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'

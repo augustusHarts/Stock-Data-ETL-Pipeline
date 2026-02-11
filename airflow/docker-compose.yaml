@@ -1,0 +1,79 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: airflow_postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: stock_pipeline
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  airflow-init:
+    image: apache/airflow:2.7.0
+    container_name: airflow_init
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/stock_pipeline
+      - SQL_PASSWORD=airflow
+      - POSTGRES_USER=airflow
+      - POSTGRES_DB=stock_pipeline
+      - DB_HOST=postgres
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/stock_pipeline
+    entrypoint: >
+      bash -c "
+      airflow db init &&
+      cd /opt/airflow/stock_pipeline &&
+      python -m src.db.init.init_db
+      "
+
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    container_name: airflow_webserver
+    restart: always
+    environment: 
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/stock_pipeline
+      - DATABASE_URL=postgresql://airflow:airflow@postgres:5432/stock_pipeline
+      - AIRFLOW__WEBSERVER__SECRET_KEY=supersecretkey
+      - SQL_PASSWORD=airflow
+      - POSTGRES_USER=airflow
+      - POSTGRES_DB=stock_pipeline
+      - DB_HOST=postgres
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/stock_pipeline
+    ports:
+      - '8080:8080'
+    command: webserver
+  
+  airflow-scheduler:
+    image: apache/airflow:2.7.0
+    container_name: airflow_scheduler
+    restart: always
+    depends_on: 
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/stock_pipeline
+      - AIRFLOW__WEBSERVER__SECRET_KEY=supersecretkey
+      - SQL_PASSWORD=airflow
+      - POSTGRES_USER=airflow
+      - POSTGRES_DB=stock_pipeline
+      - DB_HOST=postgres
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/stock_pipeline
+    command: scheduler
+
+volumes:
+  postgres_data:

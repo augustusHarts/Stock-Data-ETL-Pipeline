@@ -75,7 +75,4 @@ class StockETLPipeline:
             self.logger.error(f'Unexpected Python Error: {err}', exc_info=True)
             raise
 
-        # finally:
-        #     if self.loader.
-
         self.logger.info(f'ETL pipeline completed for {self.symbol}')
