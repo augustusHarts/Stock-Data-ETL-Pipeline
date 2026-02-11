@@ -18,6 +18,9 @@ logs/
 # Airflow
 airflow/logs/
 airflow/*.db
+airflow/logs/
+airflow/plugins/__pycache__/
+airflow/__pycache__/
 
 # Environment variables
 .env
@@ -39,7 +42,7 @@ Thumbs.db
 config.ini
 
 # Docker files
-docker-compose.yml
+docker-compose.yaml
 Dockerfile
 .dockerignore
 
