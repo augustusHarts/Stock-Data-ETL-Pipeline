@@ -42,9 +42,9 @@ Thumbs.db
 config.ini
 
 # Docker files
-docker-compose.yaml
 Dockerfile
 .dockerignore
+docker-compose.yaml
 
 #Large files
 .csv
