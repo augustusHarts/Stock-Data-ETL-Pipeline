@@ -1,15 +1,26 @@
-# Stock Data ETL Pipeline
+# Stock Data ETL Pipeline with Apache Airflow
 
 ## Project Overview
 
-This project is an end-to-end Data Engineering pipeline that fetches daily stock market data from the Yahoo Finance API, processes it using Python, engineers financial features, and loads the transformed data into a PostgreSQL database.
+This project is an end-to-end **Data Engineering pipeline** that fetches daily stock market data from the Yahoo Finance API, processes it using Python, engineers financial features, and loads the transformed data into a PostgreSQL database.
 
-The primary aim of this project is to demonstrate core Data Engineering concepts including API ingestion, data transformation, database design, and ETL pipeline development using modular and reusable code.
+The pipeline is fully automated and orchestrated using **Apache Airflow**, enabling scheduled and reliable execution of ETL workflows.
+
+The primary aim of this project is to demonstrate real-world Data Engineering concepts including:
+
+- API ingestion  
+- Data transformation  
+- Feature engineering  
+- Database design  
+- Workflow orchestration  
+- Containerization  
+- Modular ETL development  
 
 ---
 
-## Features
+## Key Features
 
+### ETL Capabilities
 - Fetches real-time stock price data from Yahoo Finance API  
 - Parses raw JSON responses into structured tabular data  
 - Cleans and validates financial time-series data  
@@ -21,18 +32,44 @@ The primary aim of this project is to demonstrate core Data Engineering concepts
 - Loads transformed data into PostgreSQL  
 - Implements modular, object-oriented ETL design  
 - Config-driven architecture for easy extensibility  
-- One-command execution pipeline  
+
+### Orchestration
+- Fully automated using **Apache Airflow**
+- DAG-based scheduling
+- Runs every 5 minutes via cron scheduling
+- Task retries and logging
+- Multi-stock parallel processing
+- Dockerized Airflow environment
+
+---
+
+## Technologies Used
+
+- **Python** – Core programming language  
+- **Pandas** – Data manipulation  
+- **Requests** – API interaction  
+- **PostgreSQL** – Data storage  
+- **SQLAlchemy** – Database ORM  
+- **Apache Airflow** – Workflow orchestration  
+- **Docker & Docker Compose** – Containerization  
+- **Object-Oriented Programming (OOP)**  
+- **Logging & Config Management**
 
 ---
 
 ## Project Architecture
 
-The project follows a modular ETL architecture.
+The project follows a modular ETL architecture integrated with Airflow scheduling.
 
-### Folder Structure
+### Updated Folder Structure
 
 ```bash
-stock_pipeline/
+Stock-Data-ETL-Pipeline/
+│
+├── airflow/
+│   ├── dags/
+│   │   └── stock_etl_dag.py
+│   └── docker-compose.yml
 │
 ├── src/
 │   ├── ingestion/
@@ -41,7 +78,8 @@ stock_pipeline/
 │   ├── transformation/
 │   │   └── stock_transformer.py
 │   ├── db/
-│   │   └── db_loader.py
+│   │   ├── db_loader.py
+│   │   └── engine.py
 │   ├── pipeline/
 │   │   └── etl_pipeline.py
 │   └── utils/
@@ -52,9 +90,8 @@ stock_pipeline/
 │   └── raw/
 │
 ├── requirements.txt
-└── main.py
-```
-
+├── main.py
+└── README.md
 ---
 
 ## Technologies Used
@@ -90,7 +127,6 @@ stock_pipeline/
 ## Database Design
 
 ### Tables
-
 **stocks**
 
 | Column    | Type    | Description      |
@@ -115,41 +151,69 @@ stock_pipeline/
 | ma_20d         | 20-day moving avg    |
 | ma_50d         | 50-day moving avg    |
 
----
+```
 
-## How to Run the Project
+## How to Run the Project with Airflow
 
-### 1. Clone Repository
+### 2. Run Docker and Postgres
 
 ```bash
 git clone https://github.com/augustusHarts/Stock-Data-ETL-Pipeline.git
 cd stock_pipeline
 ```
 
-### 2. Create Virtual Environment
+### 2. Run Docker and Postgres
+
+For docker:
+```bash
+desktop docker 
+```
+
+For Postgres:
+```bash
+psql -h postgres -h localhost -U postgres
+```
+
+### 3. Start Airflow using Docker
+
+```bash
+cd airflow
+docker-compose up -d
+```
+
+### 4. Access Airflow UI
+
+```
+https://localhost:8080/login/
+
+username: airflow
+password: airflow
+```
+
+## How to Run the Project without Airflow
+
+### 1. Create Virtual Environment
 
 ```bash
 python -m venv etlenv
-source etlenv/bin/activate   # Mac/Linux
-etlenv\Scripts\activate      # Windows
+source etlenv/bin/activate
+etlenv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Setup PostgreSQL Database
+### 3. Setup PostgreSQL Database
 
-1. Create a PostgreSQL database:
-
+Create Database:
 ```
 stock_pipeline
 ```
 
-2. Update database credentials in the configuration file:
-
+Configure credentails in:
 ```
 src/utils/config.py
 ```
