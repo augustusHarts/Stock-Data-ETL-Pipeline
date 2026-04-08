@@ -10,6 +10,8 @@ import requests
 import json
 from datetime import datetime
 import time
+import asyncio
+import aiohttp
 from src.utils.config import RAW_DATA_DIR, API_TIMEOUT, YAHOO_RANGE, YAHOO_INTERVAL 
 from src.utils.logger import get_logger
 
@@ -24,7 +26,7 @@ class StockFetcher:
         self.symbol = symbol
         self.logger = get_logger(self.__class__.__name__)
 
-    def fetch_data(self) -> dict:
+    async def fetch_data(self,session) -> dict:
         """
         Fetch raw stock price data from external APIs.
 
@@ -40,7 +42,7 @@ class StockFetcher:
             'interval': YAHOO_INTERVAL
         }
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/58.0.3029.110'
         }
         retries = 3
         base_backoff = 2
@@ -49,32 +51,31 @@ class StockFetcher:
         
         for attempt in range(1, retries+1):
             try:
-                response = requests.get(
-                    url, 
-                    params=params, 
-                    timeout=API_TIMEOUT,
-                    headers=headers
-                )
+                async with session.get(
+                    url,
+                    params=params,
+                    headers=headers,
+                    timeout=API_TIMEOUT
+                ) as response:
 
-                if response.status_code == 429:
-                    raise requests.RequestException('Rate limit exceeded (429)')
+                    if response.status == 429:
+                        raise Exception('Rate limit exceeded (429)')
                 
-                response.raise_for_status()
-                data = response.json()
+                    response.raise_for_status()
+                    data = await response.json()
 
-                if 'chart' not in data or data['chart'].get('error') is not None:
-                    raise ValueError('Invalid response from Yahoo Finance')
+                    if 'chart' not in data or data['chart'].get('error') is not None:
+                        raise ValueError('Invalid response from Yahoo Finance')
                 
-                self.logger.info(f'Successfully fetched data for {self.symbol}')
-                return data
+                    self.logger.info(f'Successfully fetched data for {self.symbol}')
+                    return data
             
-            except requests.exceptions.RequestException as e:
-                self.logger.exception(f'API request failed')
+            except aiohttp.ClientError as e:
+                self.logger.error(f'API request failed')
                 
                 if attempt < retries:
-                    sleep_time = base_backoff ** attempt
-                    self.logger.info(f'Retrying in {sleep_time} seconds...')
-                    time.sleep(sleep_time)
+                    self.logger.info(f'Retrying in {base_backoff ** attempt} seconds...')
+                    await asyncio.sleep(base_backoff ** attempt)
                 else:
                     self.logger.error(('Max reties exceeded'))
                     raise
@@ -82,7 +83,13 @@ class StockFetcher:
             except ValueError as e:
                 self.logger.error(f'Data Validation failed: {e}')
                 raise
-        
+
+        raise RuntimeError("Failed to fetch data after retries")
+
+    async def fetch_data_async(self) -> dict:
+        async with aiohttp.ClientSession() as session:
+            return await self.fetch_data(session)
+
     def save_raw_data(self,data):
         """
         Persist raw stock price data in JSON format.

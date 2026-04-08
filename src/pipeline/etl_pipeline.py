@@ -7,7 +7,7 @@ Responsibilities:
 - Apply transformation and features to structures data
 - Load the clean and featured data to PostgreSQL
 """
-
+import asyncio
 from src.utils.config import DATABASE_URL
 from src.utils.logger import get_logger
 from src.db.db_loader import PostgresLoader
@@ -38,7 +38,7 @@ class StockETLPipeline:
         self.transformer = StockTransformer()
         self.loader = PostgresLoader(DATABASE_URL)
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """
         Exceute the ETL pipeline from begining.
         """
@@ -46,7 +46,7 @@ class StockETLPipeline:
         self.logger.info(f'Starting ETL pipeline for {self.symbol}')
 
         # Extract
-        raw_data = self.fetcher.fetch_data()
+        raw_data = await self.fetcher.fetch_data_async()
         self.fetcher.save_raw_data(raw_data)
 
         # Parse
